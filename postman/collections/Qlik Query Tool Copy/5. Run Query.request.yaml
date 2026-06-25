@@ -1,0 +1,14 @@
+$kind: http-request
+description: Esegue un'espressione Qlik sull'app {{appId}}. Modifica l'espressione nel body.
+url: "{{baseUrl}}/query"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "appId": "{{appId}}",
+      "expression": "Count(Distinct [Resa])"
+    }
+order: 6000

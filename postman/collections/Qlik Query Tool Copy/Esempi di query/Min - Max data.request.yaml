@@ -1,0 +1,15 @@
+$kind: http-request
+name: Min / Max data
+description: Data massima formattata leggibile. Usa Min(...) per la minima.
+url: "{{baseUrl}}/query"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "appId": "{{appId}}",
+      "expression": "Text(Date(Max([NomeCampoData]), 'DD/MM/YYYY'))"
+    }
+order: 5000

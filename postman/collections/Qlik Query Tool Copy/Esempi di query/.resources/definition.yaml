@@ -1,0 +1,3 @@
+$kind: collection
+description: "Varianti di espressione pronte. Tutte usano {{appId}}: cambia la variabile per puntare ad altre app."
+order: 1000

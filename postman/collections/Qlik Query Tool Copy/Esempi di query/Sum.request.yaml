@@ -1,0 +1,14 @@
+$kind: http-request
+description: Somma di un campo numerico. Sostituisci [NomeCampoNumerico] con un campo di tipo numeric da '4. App Schema'.
+url: "{{baseUrl}}/query"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "appId": "{{appId}}",
+      "expression": "Sum([NomeCampoNumerico])"
+    }
+order: 3000

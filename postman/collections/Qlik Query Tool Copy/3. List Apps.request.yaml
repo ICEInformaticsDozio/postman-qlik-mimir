@@ -1,0 +1,18 @@
+$kind: http-request
+description: Elenco app con appId e nome. Lo script di test elenca tutte le app nella Console di Postman e imposta {{appId}} solo se non è già valorizzata.
+url: "{{baseUrl}}/apps"
+method: GET
+scripts:
+  - type: afterResponse
+    code: |-
+      // Imposta appId automaticamente SOLO se la variabile è vuota,
+      // per non sovrascrivere l'app che hai scelto.
+      const data = pm.response.json();
+      if (data.apps && data.apps.length && !pm.collectionVariables.get('appId')) {
+        pm.collectionVariables.set('appId', data.apps[0].appId);
+        console.log('appId impostato a:', data.apps[0].appId, '(' + data.apps[0].appName + ')');
+      }
+      console.log('App disponibili:');
+      (data.apps || []).forEach(function (a) { console.log('  ' + a.appId + '  ' + a.appName); });
+    language: text/javascript
+order: 4000

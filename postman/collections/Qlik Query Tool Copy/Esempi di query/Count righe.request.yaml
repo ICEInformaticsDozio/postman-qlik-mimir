@@ -1,0 +1,14 @@
+$kind: http-request
+description: Conteggio totale (non distinto) delle occorrenze di un campo.
+url: "{{baseUrl}}/query"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "appId": "{{appId}}",
+      "expression": "Count([Resa])"
+    }
+order: 2000

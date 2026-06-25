@@ -1,0 +1,5 @@
+$kind: http-request
+description: Definizione del tool in formato function-calling, da registrare nell'AI esterna.
+url: "{{baseUrl}}/spec"
+method: GET
+order: 3000

@@ -1,0 +1,14 @@
+$kind: http-request
+description: "Somma filtrata: la sintassi {<Campo={valore}>} applica un filtro prima dell'aggregazione. Stringhe tra apici singoli, numeri senza."
+url: "{{baseUrl}}/query"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "appId": "{{appId}}",
+      "expression": "Sum({<Anno={2025}>} [NomeCampoNumerico])"
+    }
+order: 4000

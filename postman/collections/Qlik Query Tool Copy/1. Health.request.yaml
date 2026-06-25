@@ -1,0 +1,5 @@
+$kind: http-request
+description: Verifica che il tool sia attivo e quante app sono caricate.
+url: "{{baseUrl}}/health"
+method: GET
+order: 2000

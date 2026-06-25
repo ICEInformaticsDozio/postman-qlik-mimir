@@ -1,0 +1,196 @@
+$kind: collection
+name: Qlik Query Tool Copy
+description: |-
+  # 🤖 Qlik Query Tool
+
+  Microservizio HTTP che espone **una sola capacità**: eseguire un'espressione di  
+  aggregazione Qlik su un'app Qlik Sense on-premise e restituire il risultato.
+
+  È il "braccio" che parla con il motore Qlik: un sistema AI (anche on-premise) compone  
+  un'espressione e chiama questo tool per ottenere dati reali. Il tool non contiene logica AI.
+
+  ```
+  AI  ──(decide l'espressione)──►  Qlik Query Tool  ──(Engine API)──►  Qlik Sense
+  AI  ◄──────(risultato)─────────  Qlik Query Tool  ◄───────────────  Qlik Sense
+
+   ```
+
+  ---
+
+  ## ⚙️ Setup
+
+  Imposta le **Variables** della collection (tab _Variables_):
+
+  | Variabile | Valore | Note |
+  | --- | --- | --- |
+  | `baseUrl` | `http://localhost:3100` | Usa `localhost` dal server stesso o da una macchina nella sua rete. Da una rete diversa usa l'IP del server (es. `http://10.1.21.175:3100`), porta **3100** aperta sul firewall. |
+  | `appId` | _(GUID di un'app)_ | Preimpostato su un'app reale. Cambialo per interrogarne un'altra (prendi l'id da **3\. List Apps**). |
+
+  ---
+
+  ## 🚀 Quick start
+
+  Esegui le richieste in ordine:
+
+  1. **1\. Health** → conferma che il tool è attivo.
+      
+  2. **3\. List Apps** → ottieni gli `appId` (lo script popola `{{appId}}` se è vuota).
+      
+  3. **4\. App Schema** → leggi tabelle e campi esatti dell'app.
+      
+  4. **5\. Run Query** → componi l'espressione e ottieni il risultato.
+      
+
+  ---
+
+  ## 📚 Endpoint
+
+  ### `GET {{baseUrl}}/health`
+
+  Stato del servizio e numero di app caricate.
+
+  ``` json
+  { "status": "ok", "appsLoaded": 9, "kbExtractedAt": "2026-06-12T08:29:28.158Z" }
+
+   ```
+
+  ### `GET {{baseUrl}}/spec`
+
+  Definizione del tool in formato function-calling (OpenAI / Anthropic / Ollama), da  
+  registrare nel sistema AI esterno.
+
+  ### `GET {{baseUrl}}/apps`
+
+  Elenco delle app interrogabili con il loro `appId`.
+
+  ``` json
+  {
+    "extractedAt": "2026-06-12T08:29:28.158Z",
+    "apps": [
+      { "appId": "526dd144-...", "appName": "Applicazione Spedizionieri", "tableCount": 8, "fieldCount": 64 }
+    ]
+  }
+
+   ```
+
+  ### `GET {{baseUrl}}/apps/{{appId}}`
+
+  Schema dettagliato: per ogni tabella i campi con `name`, `type`  
+  (`numeric` | `date` | `timestamp` | `dimension` | `key`), `cardinality` e, quando  
+  disponibili, `distinctValues`, `range`, `dateRange`. È la base per comporre espressioni valide.
+
+  ### `POST {{baseUrl}}/query`
+
+  Esegue un'espressione Qlik. **Body:**
+
+  ``` json
+  { "appId": "{{appId}}", "expression": "Count(Distinct [Resa])" }
+
+   ```
+
+  **Risposta OK (200):**
+
+  ``` json
+  { "ok": true, "appId": "526dd144-...", "expression": "Count(Distinct [Resa])", "result": "42" }
+
+   ```
+
+  **Risposta errore (422):**
+
+  ``` json
+  { "ok": false, "appId": "526dd144-...", "expression": "...", "error": "messaggio Qlik" }
+
+   ```
+
+  ---
+
+  ## 🧮 Sintassi delle espressioni Qlik
+
+  > **Regola d'oro:** l'espressione deve restituire **UN solo valore**, quindi va sempre  
+  avvolta in una funzione di aggregazione. Non è SQL, non è un nome di tabella. 
+    
+
+  ### Aggregazioni base
+
+  | Obiettivo | Espressione |
+  | --- | --- |
+  | Somma | `Sum([Importo])` |
+  | Conteggio righe | `Count([OrderID])` |
+  | Conteggio valori distinti | `Count(Distinct [Resa])` |
+  | Media | `Avg([Prezzo])` |
+  | Minimo / Massimo | `Min([Data])` / `Max([Data])` |
+  | Valore unico (se costante) | `Only([Valuta])` |
+
+  ### Regole sui nomi
+
+  - Campi con spazi o caratteri speciali → **parentesi quadre**: `Sum([Net Amount])`
+      
+  - Usa i nomi **esatti** presi da `GET /apps/{{appId}}` — non inventarli.
+      
+
+  ### Filtri con Set Analysis `{< ... >}`
+
+  ```
+  Sum({<Anno={2025}>} [Importo])                       // solo il 2025
+  Sum({<Anno={2025}, Regione={&#x27;EU&#x27;,&#x27;US&#x27;}>} [Importo])  // 2025 in EU o US
+  Count({<Stato={&#x27;Aperto&#x27;}>} [OrderID])                // conta gli aperti
+  Sum({<Anno={">=2023"}>} [Importo])                   // dal 2023 in poi
+
+   ```
+
+  - Valori **stringa** tra apici singoli: `{Regione={'EU'}}`
+      
+  - Valori **numerici** senza apici: `{Anno={2025}}`
+      
+
+  ### Date
+
+  ```
+  Text(Date(Max([DataOrdine]), 'DD/MM/YYYY'))          // data massima formattata
+
+   ```
+
+  ### ❌ Errori comuni
+
+  - `SELECT \\* FROM ...` → non è SQL.
+      
+  - `[Importo]` da solo → manca l'aggregazione, ritorna più righe.
+      
+  - `Sum(Net Amount)` → campo con spazi senza parentesi → usa `Sum([Net Amount])`.
+      
+
+  ---
+
+  ## 🔌 Per il sistema AI esterno
+
+  Prompt pronto da incollare nell'AI on-premise:
+
+  ```
+  Hai accesso a un tool "query_qlik" che esegue espressioni di aggregazione Qlik e
+  restituisce un valore. Per usarlo:
+  1. GET /apps → scopri le app e i loro appId.
+  2. GET /apps/{appId} → conosci tabelle e campi esatti.
+  3. Componi un'espressione Qlik che restituisce UN valore, avvolta in un'aggregazione
+     (Sum, Count, Avg, Min, Max). Nomi di campo tra [parentesi quadre]. Filtri con
+     set analysis: Sum({<Anno={2025}>} [Vendite]).
+  4. POST /query con { "appId": "...", "expression": "..." }.
+  5. Leggi "result". Se "ok" è false, correggi l'espressione e riprova.
+  Non inventare nomi di campo o di app: usa solo quelli della discovery.
+
+   ```
+
+  ---
+
+  ## ℹ️ Note
+
+  - **Avvio del tool:** `npm run tool` sul server (porta 3100, override con `TOOL_PORT`). Richiede  
+      knowledge base generata (`npm run extract`), certificati Qlik e `.env` configurato.
+      
+  - **Accesso da rete diversa:** se `baseUrl` con l'IP del server va in timeout ma `localhost`  
+      funziona, è il firewall/segmento di rete: va aperta la porta 3100 verso la tua macchina.
+      
+  - **Segreti:** non inserire API key o password nelle variabili di collection. Usa le variabili  
+      di _Environment_ (come _secret_) così non finiscono in un eventuale export/sync su GitHub.
+variables:
+  baseUrl: http://10.1.21.175:3100
+  appId: 526dd144-e6dd-4ba7-81f3-16a15b9bb88f

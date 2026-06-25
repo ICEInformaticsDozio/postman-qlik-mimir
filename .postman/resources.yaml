@@ -1,0 +1,15 @@
+# Use this workspace to collaborate
+workspace:
+  id: f4f45335-4400-4c8b-b777-55e305531892
+
+# Each entry here maps a local resource to one or more corresponding objects in Postman Cloud
+
+cloudResources:
+  collections:
+    ../postman/collections/Qlik Query Tool Copy: 351cf571-6ec6-4b57-b01b-bd36636aa644
+
+# All resources in the `postman/` folder are automatically registered in Local View.
+# Point to additional files outside the `postman/` folder to register them individually. Example:
+#localResources:
+#  collections:
+#    - ../tests/E2E Test Collection/
