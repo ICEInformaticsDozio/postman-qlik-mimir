@@ -1,4 +1,5 @@
 $kind: http-request
+name: Run Query
 description: Esegue un'espressione Qlik sull'app {{appId}}. Modifica l'espressione nel body.
 url: "{{baseUrl}}/query"
 method: POST
@@ -9,6 +10,6 @@ body:
   content: |-
     {
       "appId": "{{appId}}",
-      "expression": "Count(Distinct [Resa])"
+      "expression": "Count(Distinct [INFPGRP])"
     }
 order: 6000
