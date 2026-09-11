@@ -2,6 +2,10 @@ $kind: http-request
 description: Elenco app con appId e nome. Lo script di test elenca tutte le app nella Console di Postman e imposta {{appId}} solo se non è già valorizzata.
 url: "{{baseUrl}}/apps"
 method: GET
+auth:
+  type: bearer
+  credentials:
+    token: ZJeXbA5JNZ-AIppandfzGDNRqSeEre2TGNr3nuaGGtA
 scripts:
   - type: afterResponse
     code: |-
