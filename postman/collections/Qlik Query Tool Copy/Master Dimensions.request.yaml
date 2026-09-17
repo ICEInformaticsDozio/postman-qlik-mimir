@@ -1,0 +1,11 @@
+$kind: http-request
+description: Esegue un'espressione Qlik sull'app {{appId}}. Modifica l'espressione nel body.
+url: "{{baseUrl}}/apps/{{appId}}/dimensions"
+method: GET
+headers:
+  Content-Type: application/json
+auth:
+  type: bearer
+  credentials:
+    token: ZJeXbA5JNZ-AIppandfzGDNRqSeEre2TGNr3nuaGGtA
+order: 4259620813523516
